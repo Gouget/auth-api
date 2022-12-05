@@ -9,8 +9,6 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Configuration.AddJsonFile("C:\\src\\auth-api\\auth-api\\appsettings.json");
-
 // Add services to the container.
 
 builder.Services.AddControllers();
