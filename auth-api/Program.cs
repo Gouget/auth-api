@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 // Add services to the container.
 
@@ -16,8 +17,17 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<AuthContext>(option => option.UseSqlServer(connectionString));
+var host = builder.Configuration["DBHOST"];
+var port = builder.Configuration["DBPORT"];
+var password = "admin";
+var userid = "root";
+var productsdb = "roomshare_auth_api";
+
+string mySqlConnStr = $"server={host}; userid={userid};pwd={password};port={port};database={productsdb}";
+
+builder.Services.AddDbContextPool<AuthContext>(options =>
+  options.UseMySql(mySqlConnStr,
+      ServerVersion.AutoDetect(mySqlConnStr)));
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
@@ -39,6 +49,18 @@ builder.Services.AddAuthentication(auth =>
     };
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+                      builder =>
+                      {
+                          builder
+                             .AllowAnyOrigin()
+                             .AllowAnyMethod()
+                             .AllowAnyHeader();
+                      });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -52,6 +74,8 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
+app.UseCors(MyAllowSpecificOrigins);
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapControllers();
 app.Run();

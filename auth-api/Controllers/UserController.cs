@@ -109,6 +109,7 @@ public class UserController : BaseController
 
 
     [HttpPost]
+    [AllowAnonymous]
     public IActionResult SaveUser([FromBody] UserPayload payload)
     {
         try
